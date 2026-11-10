@@ -1,0 +1,16 @@
+{
+  "domains": {
+    "WestAfrica": {
+      "centre_lat": 15.0,
+      "centre_lon": 0.0,
+      "width_px": 1500,
+      "height_px": 1000
+    },
+    "Ghana": {
+      "centre_lat": 8.0,
+      "centre_lon": -1.15,
+      "width_px": 512,
+      "height_px": 512
+    }
+  }
+}
