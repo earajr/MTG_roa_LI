@@ -1,0 +1,56 @@
+[build-system]
+requires = [
+    "hatchling",
+    "hatch-vcs"
+]
+build-backend = "hatchling.build"
+
+[project]
+authors = [
+    {name = "Adrià Amell", email = "amell@chalmers.se"}
+]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Private :: Do Not Upload",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "array-api-compat",
+    "bottleneck",
+    "dask",
+    "eumdac",
+    "netCDF4",
+    "numba",
+    "numpy",
+    "pansat==0.1.2",
+    "pyproj",
+    "pyresample",
+    "quantnn==0.0.5",
+    "satpy",
+    "scipy",
+    "torch",
+    "torchvision",
+    "xarray",
+    "zarr",
+]
+description = "Rain over Africa retrievals"
+dynamic = ["version"]
+keywords = ["ai", "ml", "qrnn", "meteosat", "rain", "precipitation", "africa"]
+license = {file = "LICENSE"}
+maintainers = [
+    {name = "Adrià Amell", email = "amell@chalmers.se"}
+]
+name = "roa"
+readme = "README.md"
+requires-python = ">= 3.10"
+
+[project.urls]
+Repository = "https://github.com/SEE-GEO/roa"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.version]
+source = "vcs"
