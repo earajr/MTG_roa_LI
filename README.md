@@ -134,3 +134,57 @@ git clone https://github.com/earajr/MTG_roa_LI.git
 cd MTG_roa_LI
 ```
 ### Install Micromamba
+
+```bash
+curl -Ls https://micro.mamba.pm/install.sh | bash
+```
+Reload your shell
+
+```bash
+source ~/.bashrc
+```
+Verify installation:
+```bash
+micromamba --version
+```
+### Create environment from environment.yml
+Using the yml file included in this repository create a new micromamba environment
+
+```bash
+micromamba env create -f environment.yml
+```
+Once you have agreed to the installation of the required packages this will create a new micromamba environment called ```MTG_RoA_Satpy```. This environment contains most of what you need to run the scripts included here. However the Rain over Africa code will need to be installed to the environment seperately.
+
+### Activate the environment
+To install the RoA code you will first need to activate the environment.
+
+```bash
+micromamba activate MTG_RoA_Satpy
+```
+
+### Install RoA package from source
+Now to install the RoA package to your environment, first change directory to the roa directory included in this repository. This directory is almost an exact copy of the roa repository. However, it has been recreated here to facilitate some minor changes and ensure that any modifications to the original code base don't produce any conflicts with with the environment.
+
+```bash
+cd roa
+```
+
+Once in the roa directory install the roa code to your active environment.
+
+```bash
+pip install -e .
+```
+Installing using the -e flag will allow you to make modifications to the roa package as required and these changes will be available to be used in your environment. The modifications to the made from the original roa code were mostly to allow for projection data to be written to the output files to allow for the output files which can be used directly with the ADAGUC server.
+
+### Verify PyTorch GPU Access
+Once RoA has been installed check that the PyTorch library has access to the GPU.
+
+```bash
+python -c "import torch; print(torch.cuda.is_available())"
+```
+Expected result
+```bash
+True
+```
+
+
