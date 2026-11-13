@@ -186,5 +186,22 @@ Expected result
 ```bash
 True
 ```
+## Input data
+### MTG FCI
 
+### MTG LI
 
+### Output directories
+Linking to ADAGUC server?
+
+### Domains 
+If required modify the domains.json file. Domains are set by providing a name of the domain, the centre lat and lon values and a vertical and horizontal size of the domain (this is based on Meteosat second generation pixels)
+
+### First run
+This will take ages the first time as the regridding information has to be produced. The regridding weights will be stored in the regrid_weights direcory and will consist of a pickle file which is for regridding the MTG data onto a MSG grid and several msg and mtg to and from cartesian weights. These second regridding weights files are required as pysteps (used for the forward extrapolation of data) works best on a cartesian grid. Both roa (on the MSG grid) and MTG LI (on the MTG grid) need to regridded to an domain specific cartesian grid for extrapolation before results are regridded back before being written to file.
+
+### Subsequent runs
+Should take less than a minute to process a regional domain, perform extrapolations and save files. 
+
+### File monitoring for running code.
+Not included here but for FASTA we make use of system.d and inotifywait scripts to detect when new staellite files are present and automatically trigger the running of RoA and extrapolation code.
