@@ -225,5 +225,11 @@ python ROA_MTG-specify-datetime.py $YYYYMMDDhhmm
 
 Subsequent runs should take less time to process. On my system for testing I was able to process the West Africa and the Ghana domains in less than 40 seconds (both rainfall retrieval and extrapolations for 3 hours) including saving files.
 
+Once there are some RoA retrievals available you will be able to run the extrapolations too. Once again the first time that this is done it will take longer than usual as the weights files will need to be generated. Note that the date and time are provided as arguments again. however, this time they are given as 2 separate arguments.
+
+```bash
+python extrapolation_RoA_LI.py $YYYYMMDD $hhmm
+```
+
 ### File monitoring for running code.
 Not included here but for FASTA we make use of system.d and inotifywait scripts to detect when new satellite files are present and automatically trigger the running of RoA and extrapolation code.
