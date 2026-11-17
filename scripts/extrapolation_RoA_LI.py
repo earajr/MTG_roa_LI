@@ -311,8 +311,6 @@ def compute_tile_motion(R, tile):
 #MAIN
 #####################################################################################
 
-print("Reading input vars and setting values")
-
 # Input arguments
 LI_indir = Path(os.getcwd()+"/../data/MTG_LI_input")
 R_indir = Path(os.getcwd()+"/../data/roa_retrievals")
@@ -347,8 +345,6 @@ n_leadtimes = int(fore_len / timestep)
 
 # Load source lightning grid from file
 
-print("Reading lightning data")
-
 L_source_grid_fil = Path(os.getcwd()+"/W_XX-EUMETSAT-Darmstadt,IMG+SAT,MTI1+LI-2-AF--FD--CHK-BODY--DIS-NC4E_C_EUMT_20261023134736_L2PF_OPE_20261015235000_20261015235030_N__O_0144_0001.nc")
 
 initial_scn = Scene(filenames=[L_source_grid_fil], reader="li_l2_nc")
@@ -378,8 +374,6 @@ except:
     L_flag = False
 
 # Read domains
-print("Read domains information")
-
 domain_file = Path(os.getcwd()) / "domains.json"
 domains = read_domains(domain_file)
  
@@ -403,8 +397,6 @@ for domain_name, domain_info in domains.items():
     fns = []
 
     missing_file = False
-
-    print("Identifying RoA files")
 
     for i in range(3, -1, -1):
 
@@ -430,8 +422,6 @@ for domain_name, domain_info in domains.items():
         print(f"Skipping {domain_name}")
         continue
 
-
-    print("Reading lat and lon and coordinate values from latest file")
     R_nc = Dataset(fns[-1], "r")
     R_lat = R_nc.variables["latitude"][:]
     R_lon = R_nc.variables["longitude"][:]
@@ -470,8 +460,6 @@ for domain_name, domain_info in domains.items():
 
 # create cartesian destination grid (better for pysteps extrapolations
 
-    print("Create cartesian grid from domain information")
-
     proj = Proj(
         proj="laea",
         lat_0=centre_lat,
@@ -497,9 +485,6 @@ for domain_name, domain_info in domains.items():
          dx
     )
 
-#    x_regrid = np.arange(-5500000, 5500000, dx)
-#    y_regrid = np.arange(-5500000, 5500000, dx)
-
     xx, yy = np.meshgrid(x_regrid, y_regrid)
 
     lon_regrid, lat_regrid = proj(xx, yy, inverse=True)
@@ -511,16 +496,11 @@ for domain_name, domain_info in domains.items():
         }
     )
 
-    print("Generate domain hash")
     domain_hash = get_domain_hash(domain_name, domain_info, dx)
-
-    print("Create weights files if required")
 
 # Lightning Forward regridder
     if L_flag:
 
-#        grid_hash = get_grid_hash(L_src_grid,dst_grid)
-#        weights_file = Path(os.getcwd()+ f"/regrid_weights/mtg_to_cartesian_{grid_hash}.nc")
         weights_file = Path(os.getcwd()+ f"/regrid_weights/mtg_to_cartesian_{domain_hash}.nc")
 
         try:
@@ -530,8 +510,6 @@ for domain_name, domain_info in domains.items():
 
 # RoA Forward regridder
 
-#    grid_hash = get_grid_hash(R_src_grid,dst_grid)
-#    weights_file = Path(os.getcwd()+ f"/regrid_weights/msg_to_cartesian_{grid_hash}.nc")
     weights_file = Path(os.getcwd()+ f"/regrid_weights/msg_to_cartesian_{domain_hash}.nc")
 
     try:
@@ -541,8 +519,6 @@ for domain_name, domain_info in domains.items():
 
 # RoA Reverse regridder
 
-#    grid_hash = get_grid_hash(dst_grid, R_src_grid)
-#    weights_file = Path(os.getcwd()+ f"/regrid_weights/cartesian_to_msg_{grid_hash}.nc")
     weights_file = Path(os.getcwd()+ f"/regrid_weights/cartesian_to_msg_{domain_hash}.nc")
 
     try:
@@ -553,8 +529,6 @@ for domain_name, domain_info in domains.items():
 # LI Reverse regridder
     if L_flag:
 
-#        grid_hash = get_grid_hash(dst_grid, L_src_grid)
-#        weights_file = Path(os.getcwd()+ f"/regrid_weights/cartesian_to_mtg_{grid_hash}.nc")
         weights_file = Path(os.getcwd()+ f"/regrid_weights/cartesian_to_mtg_{domain_hash}.nc")
 
         try:
@@ -563,18 +537,15 @@ for domain_name, domain_info in domains.items():
             L_regrid_back = xe.Regridder(dst_grid,L_src_grid,"bilinear",filename=weights_file,reuse_weights=False)
 
 # Regrid Lightning to cartesian grid (best for use with pysteps)
-        print("Regrid lightning data")
 
         L_cart = L_regrid_fwd(L)
         L_cart_mask = np.any(np.isfinite(L_cart), axis =0)
 
 # Regrid rainfall to cartesian grid (best for use with pysteps)
-    print("regrid RoA data")
 
     R_cart = R_regrid_fwd(R)
     R_cart_mask = np.any(np.isfinite(R_cart), axis=0)
 
-    print("Build influence fields")
     if L_flag:
         #Build Lightning influence field
         L_cart_mask_hi = L_cart[-1] > 0.05
@@ -597,7 +568,6 @@ for domain_name, domain_info in domains.items():
     nx = len(x_regrid)
     ny = len(y_regrid)
 
-    print("Create coarse global vector field")
     R_cart_coarse = zoom(R_cart, (1, 1/coarse_factor, 1/coarse_factor), order=1)
     UV_global_coarse = dense_lucaskanade(R_cart_coarse)
     U_global = zoom(UV_global_coarse[0], coarse_factor, order=1)*coarse_factor
@@ -608,7 +578,6 @@ for domain_name, domain_info in domains.items():
     tiles = generate_tiles(nx, ny, tile_size, overlap)
 
     if L_flag:
-        print("create lightning based tiled vectors")
         # Create tiled vectors based on lightning motion
         L_results = []
 
@@ -629,7 +598,6 @@ for domain_name, domain_info in domains.items():
         max_speed = 20/((dx/timestep)/60.0)
 
         # Loop over tiles and filter for instability. If unstable then use the global but if stable then include the tile in the vector generation.
-        print("Combine LI tiles and filter for instability")
         for tile, vec in L_results:
 
             y0, y1, x0, x1 = tile
@@ -661,8 +629,6 @@ for domain_name, domain_info in domains.items():
 # Create tiled vectors based on RoA motion
     R_results = []
 
-    print("Create RoA vector tiles")
-
     with ThreadPoolExecutor(max_workers=4) as exe:
 
         futures = [
@@ -680,7 +646,6 @@ for domain_name, domain_info in domains.items():
     max_speed = 20/((dx/timestep)/60.0)
 
 # Loop over tiles and filter for instability. If unstable then use the global but if stable then include the tile int he vector generation.
-    print("Combine RoA tiles and filter for instability")
     for tile, vec in R_results:
 
         y0, y1, x0, x1 = tile
@@ -711,8 +676,6 @@ for domain_name, domain_info in domains.items():
 
 # Combine global vectors with tiles RoA vectors (using the rainfall weight map, theshold of 10 mm/hr for tiled vector use and a distance of 25 km)
 
-    print("Combine all vector fields together")
-
     U = (1 - rain_weight) * U_global + rain_weight * U_R_res
     V = (1 - rain_weight) * V_global + rain_weight * V_R_res
 
@@ -724,8 +687,6 @@ for domain_name, domain_info in domains.items():
 
 # final smoothing of vector field)
    
-    print("Final smoothing")
- 
     U = gaussian_filter(U, sigma=2)
     V = gaussian_filter(V, sigma=2)
 
@@ -782,8 +743,6 @@ for domain_name, domain_info in domains.items():
 
     # Perform extrapolation of RoA
 
-    print("Use vector field to perform extrapolation")
-
     extrapolate = nowcasts.get_method("extrapolation")
     R_cart_f_dLK = extrapolate(R_cart[-1], np.stack([U, V]), timesteps=n_leadtimes).astype(np.float32)
     if L_flag:
@@ -807,8 +766,6 @@ for domain_name, domain_info in domains.items():
     missing_data_f_dLK = np.isnan(R_f_dLK).astype(np.uint8)
 
 # Write extrapolation files
-
-    print("Write file")
 
     for i in np.arange(0,n_leadtimes, 1):
 
